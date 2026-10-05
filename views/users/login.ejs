@@ -18,9 +18,19 @@
 
 <% layout('layouts/boilerplate') -%>
 <div class="row mt-3 mb-3">
-  <h1 class="col-6 offset-3 text-center">Login for WanderLust</h1>
-  <div class="col-6 offset-3">
+  <div class="col-12 form-container">
+    <h1>Welcome back</h1>
+    <p class="form-intro">Log in to open the dashboard for your TripNest account.</p>
     <form method="post" action="/login" novalidate class="needs-validation">
+      <div class="mb-3">
+        <label for="accountType" class="form-label">Log in as</label>
+        <select id="accountType" name="accountType" class="form-select" required>
+          <option value="traveler" selected>Traveler</option>
+          <option value="guide">Local guide</option>
+          <option value="admin">Administrator</option>
+        </select>
+        <div class="form-text">Choose the account type you selected when creating your account.</div>
+      </div>
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
         <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required>
@@ -31,7 +41,8 @@
         <input type="password" name="password" id="password" class="form-control" placeholder="Enter your password" required>
         <div class="invalid-feedback">Password is required</div>
       </div>
-      <button class="btn btn-success w-100">Login</button>
+      <button class="btn btn-primary-action w-100">Log in</button>
     </form>
+    <p class="auth-switch">New to TripNest? <a href="/signup">Create an account</a></p>
   </div>
 </div>

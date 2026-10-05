@@ -1,0 +1,15 @@
+<% layout('layouts/boilerplate') -%>
+
+<main class="guide-page">
+  <header class="guide-page-heading">
+    <p class="eyebrow">TripNest operations</p>
+    <h1>Admin dashboard</h1>
+    <p>Maintain TripNest’s stay catalogue, review guide submissions, and monitor publication status.</p>
+  </header>
+  <section class="home-benefits" aria-label="Guide submission counts">
+    <article class="benefit-card"><span class="benefit-icon"><i class="fa-regular fa-clock"></i></span><h2><%= stats.pending %></h2><p>Pending review</p></article>
+    <article class="benefit-card"><span class="benefit-icon"><i class="fa-solid fa-circle-check"></i></span><h2><%= stats.approved %></h2><p>Approved experiences</p></article>
+    <article class="benefit-card"><span class="benefit-icon"><i class="fa-solid fa-circle-xmark"></i></span><h2><%= stats.rejected %></h2><p>Declined submissions</p></article>
+  </section>
+  <div class="guide-form-actions"><a class="btn btn-outline-secondary" href="/listings">Manage stays</a><a class="btn btn-primary-action" href="/listings/new">Add a stay</a><a class="btn btn-outline-secondary" href="/guide-experiences/admin/queue">Review guide submissions</a></div>
+</main>

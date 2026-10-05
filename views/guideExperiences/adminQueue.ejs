@@ -1,0 +1,45 @@
+<% layout('layouts/boilerplate') -%>
+
+<main class="guide-page">
+  <header class="guide-page-heading">
+    <p class="eyebrow">TripNest review</p>
+    <h1>Guide applications</h1>
+    <p>Approve a profile only after the checks you select have actually been completed.</p>
+  </header>
+
+  <% if (applications.length) { %>
+    <section class="guide-admin-list" aria-label="Pending guide applications">
+      <% applications.forEach(application => { %>
+        <article class="guide-admin-card">
+          <div class="guide-admin-card-heading">
+            <div><h2><%= application.title %></h2><p><%= application.guide.username %> · <%= application.guide.email %></p></div>
+            <span class="guide-status guide-status-pending">Pending review</span>
+          </div>
+          <p><strong>Related stay:</strong> <%= application.listing?.title || "Listing removed" %> — <%= [application.listing?.location, application.listing?.country].filter(Boolean).join(", ") %></p>
+          <p><strong>Local area:</strong> <%= application.area %></p>
+          <p><%= application.description %></p>
+          <div class="guide-dashboard-meta"><span><strong>&#8377;<%= Number(application.price).toLocaleString("en-IN") %></strong> / visitor</span><span><%= application.durationHours %> hours</span><span><%= application.languages.join(", ") %></span></div>
+          <p><strong>Includes:</strong> <%= application.includes || "Not specified" %></p>
+          <p><strong>Guide credential:</strong> <%= application.credentialType || "Not provided" %><% if (application.credentialReference) { %> · Reference: <%= application.credentialReference %><% } %></p>
+          <% if (application.credentialDocument?.fileName) { %><p><strong>Credential proof:</strong> <a href="/guide-experiences/admin/<%= application._id %>/credential-document">Download <%= application.credentialDocument.fileName %></a></p><% } else { %><p><strong>Credential proof:</strong> Not attached</p><% } %>
+          <p><strong>Contact phone:</strong> <%= application.contactPhone %></p>
+          <form class="guide-review-form" action="/guide-experiences/admin/<%= application._id %>/review" method="post">
+            <fieldset>
+              <legend>Review checks (select only checks you completed)</legend>
+              <label><input type="checkbox" name="identityChecked"> Identity document inspected with the guide’s consent</label>
+              <label><input type="checkbox" name="credentialChecked" <%= application.credentialType ? "" : "disabled" %>> Guide credential independently checked</label>
+            </fieldset>
+            <label for="admin-note-<%= application._id %>">Private note to the guide</label>
+            <textarea class="form-control" id="admin-note-<%= application._id %>" name="adminNote" maxlength="500" placeholder="Optional review feedback"></textarea>
+            <div class="guide-review-actions">
+              <button class="btn btn-outline-danger" type="submit" name="status" value="rejected">Decline</button>
+              <button class="btn btn-primary-action" type="submit" name="status" value="approved">Approve &amp; publish</button>
+            </div>
+          </form>
+        </article>
+      <% }) %>
+    </section>
+  <% } else { %>
+    <section class="empty-state"><div class="empty-icon"><i class="fa-solid fa-circle-check"></i></div><h2>No pending applications</h2><p>New guide submissions will appear here for review.</p></section>
+  <% } %>
+</main>

@@ -1,0 +1,72 @@
+<% layout('layouts/boilerplate') -%>
+
+<main class="guide-page">
+  <header class="guide-page-heading guide-dashboard-heading">
+    <div>
+      <p class="eyebrow">Local experiences</p>
+      <h1>Guide dashboard</h1>
+      <p>Signed in as <strong><%= currUser.username %></strong>. Manage your submissions and respond to visitor enquiries.</p>
+    </div>
+    <a class="btn btn-primary-action" href="/guide-experiences/new"><i class="fa-solid fa-plus"></i> Add an experience</a>
+  </header>
+
+  <section class="guide-dashboard-section" aria-labelledby="your-experiences-heading">
+    <div class="guide-section-heading"><h2 id="your-experiences-heading">Your experiences</h2><span><%= experiences.length %></span></div>
+    <% if (experiences.length) { %>
+      <div class="guide-dashboard-list">
+        <% experiences.forEach(experience => { %>
+          <article class="guide-dashboard-card">
+            <div class="guide-dashboard-card-heading">
+              <div><h3><%= experience.title %></h3><p><%= experience.listing?.title || "Listing removed" %> · <%= experience.area %></p></div>
+              <span class="guide-status guide-status-<%= experience.status %>"><%= experience.status %></span>
+            </div>
+            <p><%= experience.description %></p>
+            <div class="guide-dashboard-meta"><span><strong>&#8377;<%= Number(experience.price).toLocaleString("en-IN") %></strong> / visitor</span><span><%= experience.durationHours %> hours</span><span><%= experience.languages.join(", ") %></span></div>
+            <% if (experience.credentialDocument?.fileName) { %><p class="guide-admin-note">Credential proof attached: <%= experience.credentialDocument.fileName %></p><% } %>
+            <% if (experience.status === "approved") { %>
+              <div class="guide-check-badges">
+                <span><i class="fa-solid fa-circle-check"></i> Profile reviewed by TripNest</span>
+                <% if (experience.identityChecked) { %><span><i class="fa-solid fa-id-card"></i> Identity checked</span><% } %>
+                <% if (experience.credentialChecked) { %><span><i class="fa-solid fa-certificate"></i> Guide credential checked</span><% } %>
+              </div>
+            <% } %>
+            <% if (experience.adminNote) { %><p class="guide-admin-note"><strong>Review note:</strong> <%= experience.adminNote %></p><% } %>
+          </article>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="guide-empty-inline"><p>You haven’t submitted an experience yet.</p><a href="/guide-experiences/new">Create your first guide experience</a></div>
+    <% } %>
+  </section>
+
+  <section class="guide-dashboard-section" aria-labelledby="incoming-heading">
+    <div class="guide-section-heading"><h2 id="incoming-heading">Visitor enquiries</h2><span><%= incomingRequests.length %></span></div>
+    <% if (incomingRequests.length) { %>
+      <div class="guide-enquiry-list">
+        <% incomingRequests.forEach(request => { %>
+          <article class="guide-enquiry-card">
+            <div><strong><%= request.visitor?.username || "TripNest visitor" %></strong><span>asked about <%= request.experience?.title || "your experience" %></span></div>
+            <p><%= request.message %></p>
+            <% if (request.visitor?.email) { %><a href="mailto:<%= request.visitor.email %>"><i class="fa-regular fa-envelope"></i> Reply by email</a><% } %>
+            <small><%= new Date(request.createdAt).toLocaleDateString("en-IN") %></small>
+          </article>
+        <% }) %>
+      </div>
+    <% } else { %><div class="guide-empty-inline"><p>No visitor enquiries yet.</p></div><% } %>
+  </section>
+
+  <section class="guide-dashboard-section" aria-labelledby="sent-heading">
+    <div class="guide-section-heading"><h2 id="sent-heading">Your contact requests</h2><span><%= sentRequests.length %></span></div>
+    <% if (sentRequests.length) { %>
+      <div class="guide-enquiry-list">
+        <% sentRequests.forEach(request => { %>
+          <article class="guide-enquiry-card">
+            <div><strong><%= request.experience?.title || "Guide experience" %></strong><span><%= request.experience?.guide?.username || "TripNest guide" %> · <%= request.experience?.listing?.location || "" %></span></div>
+            <p><%= request.message %></p>
+            <small>Sent <%= new Date(request.createdAt).toLocaleDateString("en-IN") %></small>
+          </article>
+        <% }) %>
+      </div>
+    <% } else { %><div class="guide-empty-inline"><p>You haven’t sent a guide enquiry yet.</p></div><% } %>
+  </section>
+</main>

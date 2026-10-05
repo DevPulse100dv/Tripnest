@@ -6,7 +6,13 @@ const userSchema = new Schema({
     email:{
         type:String,
         required:true
-    }
+    },
+    accountType: {
+        type: String,
+        enum: ["traveler", "guide", "admin"],
+        default: "traveler",
+        required: true,
+    },
 });
 
 userSchema.plugin(passportLocalMongoose);

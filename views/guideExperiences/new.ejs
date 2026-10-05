@@ -1,0 +1,94 @@
+<% layout('layouts/boilerplate') -%>
+
+<main class="guide-page">
+  <a class="comparison-back" href="/guide-experiences/mine"><i class="fa-solid fa-arrow-left"></i> Guide dashboard</a>
+  <header class="guide-page-heading">
+    <p class="eyebrow">Share your local knowledge</p>
+    <h1>Offer a local experience</h1>
+    <p>Choose the existing TripNest stay this experience serves. New submissions are reviewed before visitors can see them.</p>
+  </header>
+
+  <% if (listings.length) { %>
+    <form class="guide-form" action="/guide-experiences" method="post" data-guide-experience-form>
+      <div class="guide-form-grid">
+        <div class="guide-form-field guide-field-wide">
+          <label for="guide-listing">Related stay</label>
+          <select id="guide-listing" name="guideExperience[listingId]" class="form-select" required>
+            <option value="">Choose a TripNest stay</option>
+            <% listings.forEach(listing => { %>
+              <option value="<%= listing._id %>" <%= selectedListingId === String(listing._id) ? "selected" : "" %>><%= listing.title %> — <%= [listing.location, listing.country].filter(Boolean).join(", ") %></option>
+            <% }) %>
+          </select>
+          <small>Visitors will find your experience on this stay’s page.</small>
+        </div>
+        <div class="guide-form-field guide-field-wide">
+          <label for="guide-title">Experience title</label>
+          <input class="form-control" id="guide-title" name="guideExperience[title]" minlength="5" maxlength="100" placeholder="e.g. Hidden waterfalls and village trails" required>
+        </div>
+        <div class="guide-form-field guide-field-wide">
+          <label for="guide-description">What will visitors experience?</label>
+          <textarea class="form-control" id="guide-description" name="guideExperience[description]" minlength="30" maxlength="1600" placeholder="Describe the places, route, pace, and what makes this experience local." required></textarea>
+        </div>
+        <div class="guide-form-field">
+          <label for="guide-area">Local area or meeting point</label>
+          <input class="form-control" id="guide-area" name="guideExperience[area]" minlength="2" maxlength="140" placeholder="e.g. Madikeri town and nearby villages" required>
+        </div>
+        <div class="guide-form-field">
+          <label for="guide-duration">Duration in hours</label>
+          <input class="form-control" id="guide-duration" name="guideExperience[durationHours]" type="number" min="0.25" max="24" step="0.25" required>
+        </div>
+        <div class="guide-form-field">
+          <label for="guide-price">Price per visitor (₹)</label>
+          <input class="form-control" id="guide-price" name="guideExperience[price]" type="number" min="0" max="1000000" step="1" required>
+        </div>
+        <div class="guide-form-field">
+          <label for="guide-languages">Languages</label>
+          <input class="form-control" id="guide-languages" name="guideExperience[languages]" maxlength="240" placeholder="Kannada, English, Hindi" required>
+        </div>
+        <div class="guide-form-field guide-field-wide">
+          <label for="guide-includes">What is included?</label>
+          <textarea class="form-control guide-short-textarea" id="guide-includes" name="guideExperience[includes]" maxlength="500" placeholder="Transport, entry tickets, refreshments, or what visitors should bring"></textarea>
+        </div>
+        <div class="guide-form-field">
+          <label for="guide-phone">Contact phone</label>
+          <input class="form-control" id="guide-phone" name="guideExperience[contactPhone]" inputmode="tel" pattern="[+0-9() .-]{7,20}" maxlength="20" required>
+          <small>Only shown to signed-in visitors.</small>
+        </div>
+        <div class="guide-form-field">
+          <label for="credential-type">Guide credential (optional)</label>
+          <input class="form-control" id="credential-type" name="guideExperience[credentialType]" maxlength="100" placeholder="e.g. Karnataka guide licence">
+        </div>
+        <div class="guide-form-field guide-field-wide">
+          <label for="credential-reference">Credential reference (optional)</label>
+          <input class="form-control" id="credential-reference" name="guideExperience[credentialReference]" maxlength="100" placeholder="Public guide licence or certificate reference, if available">
+          <small>Enter only a public licence/certificate reference. Do not enter Aadhaar or other identity-document numbers.</small>
+        </div>
+        <div class="guide-form-field guide-field-wide">
+          <label for="credential-document">Credential proof file (optional)</label>
+          <input class="form-control" id="credential-document" name="credentialDocument" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+          <small>Attach a guide licence or training certificate only (PDF, JPG, or PNG; up to 2 MB). Do not upload Aadhaar or other identity documents. Only TripNest admins can access this file.</small>
+        </div>
+      </div>
+      <div class="guide-review-disclaimer"><i class="fa-solid fa-shield-halved"></i><span>TripNest reviews submissions before publication. A published profile does not automatically mean identity or credentials were independently verified.</span></div>
+      <div class="guide-form-actions">
+        <a class="btn btn-outline-secondary" href="/guide-experiences/mine">Cancel</a>
+        <button class="btn btn-primary-action" type="submit">Submit for review</button>
+      </div>
+    </form>
+  <% } else { %>
+    <section class="empty-state"><div class="empty-icon"><i class="fa-solid fa-house"></i></div><h2>No stays are available yet</h2><p>A guide experience needs to be connected to a TripNest listing.</p><a class="btn btn-primary-action" href="/listings">Browse stays</a></section>
+  <% } %>
+</main>
+<script>
+  const guideExperienceForm = document.querySelector("[data-guide-experience-form]");
+  const credentialDocumentInput = document.getElementById("credential-document");
+  if (guideExperienceForm && credentialDocumentInput) {
+    const updateGuideExperienceEncoding = () => {
+      guideExperienceForm.enctype = credentialDocumentInput.files.length
+        ? "multipart/form-data"
+        : "application/x-www-form-urlencoded";
+    };
+    credentialDocumentInput.addEventListener("change", updateGuideExperienceEncoding);
+    updateGuideExperienceEncoding();
+  }
+</script>

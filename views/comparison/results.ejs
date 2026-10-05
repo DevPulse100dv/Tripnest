@@ -1,0 +1,71 @@
+<% layout('layouts/boilerplate') -%>
+
+<main class="comparison-page">
+  <a class="comparison-back" href="/listings"><i class="fa-solid fa-arrow-left"></i> Back to stays</a>
+  <header class="comparison-header">
+    <p class="eyebrow">Your shortlist</p>
+    <h1>Compare your stays</h1>
+    <p>Set what matters to you. Match scores reflect only the listing data available.</p>
+  </header>
+
+  <form class="preference-panel" action="/compare" method="post">
+    <div class="preference-panel-heading">
+      <div><h2>Your priorities</h2><p>Choose how much each available factor matters to you.</p></div>
+      <button class="btn btn-primary-action" type="submit">Update comparison <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+    <% listings.forEach(listing => { %>
+      <input type="hidden" name="listingIds" value="<%= listing.id %>">
+    <% }) %>
+    <div class="preference-options">
+      <% [
+        { key: "price", label: "Price", hint: "Lower nightly price gets a higher score." },
+        { key: "rating", label: "Guest rating", hint: "Higher average review rating gets a higher score." }
+      ].forEach(criterion => { %>
+        <fieldset class="preference-control">
+          <legend><%= criterion.label %></legend>
+          <p><%= criterion.hint %></p>
+          <div class="preference-radios">
+            <% ["low", "medium", "high"].forEach(level => { %>
+              <label><input type="radio" name="preferences[<%= criterion.key %>]" value="<%= level %>" <%= preferences[criterion.key] === level ? "checked" : "" %> required><span><%= level.charAt(0).toUpperCase() + level.slice(1) %></span></label>
+            <% }) %>
+          </div>
+        </fieldset>
+      <% }) %>
+    </div>
+  </form>
+
+  <section class="comparison-results" aria-labelledby="results-title">
+    <div class="comparison-results-heading">
+      <div><p class="eyebrow">Side by side</p><h2 id="results-title">Your comparison</h2></div>
+      <p>Scores are based on your selected priorities, not a universal ranking.</p>
+    </div>
+    <% if (!listings.some(listing => listing.matchScore !== null)) { %>
+      <div class="comparison-empty"><i class="fa-solid fa-circle-info"></i><span>We don’t have enough price or rating data to calculate a match score for these stays. You can still compare their details below.</span></div>
+    <% } %>
+    <div class="comparison-grid" style="--comparison-count: <%= listings.length %>">
+      <% listings.forEach((listing, index) => { %>
+        <article class="comparison-card <%= listing.matchScore !== null && listing.matchScore === listings.find(item => item.matchScore !== null)?.matchScore ? 'comparison-top-match' : '' %>">
+          <a href="/listings/<%= listing.id %>" class="comparison-card-image">
+            <img src="<%= listing.image || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=85' %>" alt="<%= listing.title %>">
+          </a>
+          <div class="comparison-card-body">
+            <% if (index === 0 && listing.matchScore !== null) { %><span class="match-label"><i class="fa-solid fa-sparkles"></i> Strongest match for your preferences</span><% } %>
+            <h3><a href="/listings/<%= listing.id %>"><%= listing.title %></a></h3>
+            <p class="comparison-location"><i class="fa-solid fa-location-dot"></i> <%= listing.location || "Location not provided" %></p>
+            <div class="match-score <%= listing.matchScore === null ? 'match-score-unavailable' : '' %>">
+              <strong><%= listing.matchScore === null ? "—" : `${listing.matchScore}%` %></strong>
+              <span>Personal match</span>
+            </div>
+            <dl class="comparison-facts">
+              <div><dt>Price / night</dt><dd><%= listing.price === null ? "Not provided" : `₹${listing.price.toLocaleString("en-IN")}` %></dd></div>
+              <div><dt>Average rating</dt><dd><%= listing.rating === null ? "No reviews yet" : `${listing.rating.toFixed(1)} / 5 (${listing.reviewCount} ${listing.reviewCount === 1 ? "review" : "reviews"})` %></dd></div>
+              <div><dt>Distance</dt><dd class="fact-unavailable">Not provided</dd></div>
+              <div><dt>Amenities</dt><dd class="fact-unavailable">Not provided</dd></div>
+            </dl>
+            <a class="comparison-details-link" href="/listings/<%= listing.id %>">View stay details <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  </section>
+</main>

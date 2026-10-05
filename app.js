@@ -1,80 +1,56 @@
 if(process.env.NODE_ENV != "production"){
-require('dotenv').config();
+  require('dotenv').config();
 }
 
 const express = require("express");
 const app = express();
-const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require('method-override');
 const ejsMate = require("ejs-mate");
+
+const connectDatabase = require("./config/database.js");
+const configureAuthentication = require("./config/authentication.js");
 const ExpressError = require("./utils/ExpressError.js");
-const flash = require("connect-flash");
-const session = require("express-session");
-const MongoStore = require('connect-mongo');
-const passport = require("passport");
-const LocalStrategy = require("passport-local");
-const User = require("./models/user.js");
+const Listing = require("./models/listing.js");
+const wrapAsync = require("./utils/wrapAsync.js");
+
+const dbUrl = process.env.ATLASDB_URL;
+
+const sessionSecret = process.env.SECRET;
+if (!dbUrl || !sessionSecret) {
+  throw new Error("ATLASDB_URL and SECRET are required. Set them in the server environment or local .env file.");
+}
 
 const listingsRouter = require("./routers/listing.js");
 const reviewRouter = require("./routers/review.js");
 const userRouter = require("./routers/user.js")
+const comparisonRouter = require("./routers/comparison.js");
+const guideExperienceRouter = require("./routers/guideExperience.js");
 
-app.set("view engine","ejs");
+app.set("view engine","ejs");//When I ask you to render a view, use EJS as the template engine.(res.render())
+app.engine("ejs",ejsMate);
 app.use(express.urlencoded({extended:true}));
 app.use(methodOverride('_method'));
-app.engine("ejs",ejsMate);
-app.use(express.static(path.join(__dirname,"public")));
+app.use(express.static(path.join(__dirname,"public")));//The public directory is specifically meant for browser-accessible static assets.
+//because we have our app.js and env like all files we cannot give that to browser so therefore we are telling that browser resource
+// are present in the public folder so u can go and access there.
 
-const dbUrl = process.env.ATLASDB_URL;
+// Authentication
+configureAuthentication(app, { dbUrl, sessionSecret });
 
-main().then(()=>console.log("connected to DB",dbUrl))
-.catch(err => console.log(err));
-async function main() {
-  await mongoose.connect(dbUrl);
-}
-
-const store = MongoStore.create({
-  mongoUrl: dbUrl,
-  crypto:{
-    secret: process.env.SECRET,
-  },
-  touchAfter:24*3600,
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
 });
 
-store.on("error",()=>{
-  console.log("ERROR in MONGO SESSION STORE",err);
-});
+app.get("/", wrapAsync(async (req, res) => {
+  if (req.user?.accountType === "guide") return res.redirect("/guide-experiences/mine");
+  if (req.user?.accountType === "admin") return res.redirect("/guide-experiences/admin/dashboard");
+  const featuredListings = await Listing.find({}).sort({ _id: -1 }).limit(3).lean();
+  res.render("home.ejs", { featuredListings });
+}));
 
-const sessionOption = {
-  store,
-  secret:process.env.SECRET,
-  resave:false,
-  saveUninitialized:true,
-  cookie:{
-    expires: Date.now()+7*24*60*60*1000,
-    maxAge: 7*24*60*60*1000,
-    httpOnly: true,
-  },
-};
-
-app.use(session(sessionOption));
-app.use(flash());
-
-
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-app.use(passport.initialize());
-app.use(passport.session());
-
-app.use((req,res,next)=>{
-  res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-  res.locals.currUser = req.user || null;
-  next();
-});
-
+app.use("/compare", comparisonRouter);
+app.use("/guide-experiences", guideExperienceRouter);
 app.use("/listings",listingsRouter);
 app.use("/listings/:id/reviews",reviewRouter);
 app.use("/",userRouter);
@@ -85,8 +61,22 @@ app.all("*",(req,res,next)=>{
 });
 app.use((err,req,res,next)=>{
   let {status=500,message="Something went wrong"} = err;
-  res.status(status).render("error.ejs",{message});
+  if (status >= 500) console.error("Request failed:", err);
+  res.status(status).render("error.ejs",{message: status >= 500 ? "We couldn’t save this stay. Please check the server configuration and try again." : message});
 });
-app.listen(8080,(req,res)=>{
-    console.log("server is listening the port 8080",`http://localhost:8080`);
-});
+
+
+const port = process.env.PORT || 8080;
+async function startServer() {
+  try {
+    await connectDatabase(dbUrl);
+    console.log("connected to database");
+    app.listen(port, () => {
+      console.log("server is listening", `http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error("Could not connect to the database:", error);
+    process.exitCode = 1;
+  }
+}
+startServer();

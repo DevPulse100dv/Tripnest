@@ -1,11 +1,19 @@
 const Listing = require("../models/listing.js");
-const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
-const mapToken = process.env.MAP_TOKEN;
-const geocodingClient = mbxGeocoding({accessToken: mapToken});
+const GuideExperience = require("../models/guideExperience.js");
 
 module.exports.index = async (req,res)=>{
-    const allListings = await Listing.find({});
-    res.render("listings/index.ejs",{allListings});
+    const search = typeof req.query.search === "string" ? req.query.search.trim().slice(0, 100) : "";
+    const allListings = await Listing.find(search ? {
+        $or: ["title", "description", "location", "country"].map((field) => ({
+            [field]: { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" },
+        })),
+    } : {}).populate("reviews", "ratings").sort({ _id: -1 });
+    allListings.forEach((listing) => {
+        const ratings = listing.reviews.map((review) => review.ratings).filter(Number.isFinite);
+        listing.averageRating = ratings.length ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : null;
+        listing.reviewCount = ratings.length;
+    });
+    res.render("listings/index.ejs",{allListings, search});
 }
 
 module.exports.renderNewForm = (req,res)=>{
@@ -17,28 +25,27 @@ module.exports.showListing = async (req,res)=>{
     const List = await Listing.findById(id).populate({path:"reviews",populate:{path:"author"}}).populate("owner");
     if(!List){
         req.flash("error","Requested listing does not exists");
-        res.redirect("/listings");
+        return res.redirect("/listings");
     }
-    res.render("listings/show.ejs",{List});
+    const localExperiences = await GuideExperience.find({ listing: List._id, status: "approved" })
+        .populate("guide", "username")
+        .sort({ createdAt: -1 })
+        .lean();
+    res.render("listings/show.ejs",{List, localExperiences});
 }
 
 module.exports.createListing = async (req,res)=>{
-
-    let response = await geocodingClient.forwardGeocode({
-        query: req.body.listing.location,
-        limit: 1,
-      })
-        .send();            
-
-    let url = req.file.path;
-    let filename = req.file.filename;
-    const lists = new Listing(req.body.listing);
-    lists.owner = req.user._id;
-    lists.image = {url,filename};
-    lists.geometry = response.body.features[0].geometry; 
-    await lists.save();
+    const listing = new Listing(req.body.listing);
+    listing.owner = req.user._id;
+    if (req.file) {
+        const imageUrl = req.file.path.startsWith("http")
+            ? req.file.path
+            : `/uploads/${req.file.filename}`;
+        listing.image = { url: imageUrl, filename: req.file.filename };
+    }
+    await listing.save();
     req.flash("success","New listing added");
-    res.redirect("/listings");
+    res.redirect(`/listings/${listing._id}`);
 }
 
 module.exports.renderEditForm = async (req,res)=>{
@@ -46,21 +53,26 @@ module.exports.renderEditForm = async (req,res)=>{
     const List = await Listing.findById(id);
     if(!List){
         req.flash("error","Requested listing does not exists");
-        res.redirect("/listings");
+        return res.redirect("/listings");
     }
-    let imgUrl = List.image.url;
-    imgUrl = imgUrl.replace("/upload","/upload/w_250");
+    let imgUrl = List.image?.url || "";
+    if (imgUrl.startsWith("http")) imgUrl = imgUrl.replace("/upload","/upload/w_250");
     res.render("listings/edit.ejs",{List,imgUrl});
 }
 
 module.exports.updateListing = async (req,res)=>{
     let {id}=req.params;
     let lists = await Listing.findByIdAndUpdate(id,{...req.body.listing});
-    if(typeof req.file !== "undefined"){
-    let url = req.file.path;
-    let filename = req.file.filename;
-    lists.image = {url,filename};
-    await lists.save();
+    if (!lists) {
+        req.flash("error", "Requested listing does not exist");
+        return res.redirect("/listings");
+    }
+    if (req.file) {
+        const imageUrl = req.file.path.startsWith("http")
+            ? req.file.path
+            : `/uploads/${req.file.filename}`;
+        lists.image = { url: imageUrl, filename: req.file.filename };
+        await lists.save();
     }
     req.flash("success","List was updated");
     res.redirect(`/listings/${id}`);

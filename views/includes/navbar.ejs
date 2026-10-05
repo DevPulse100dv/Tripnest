@@ -1,155 +1,36 @@
-<!-- <style>
-
-  .btn-search{
-    background-color: #fe424d;
-    color: white;
-    border: none;
-    border-radius: 1.8rem;
-    padding: 0 1rem 0 1rem;
-  }
-  .btn-search:hover{
-    background-color: #fe424d;
-    color: white;
-  }
-  .btn-search i{
-    display: inline;
-    margin-right: 0.3rem;
-  }
-  .search-inp{
-    border-radius: 1.8rem;
-    padding: 0.5rem 3rem 0.5rem 3rem;
-  }
-</style>
-
-
-<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/listings"><i class="fa-regular fa-compass"></i></a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <div class="navbar-nav">
-          <a class="nav-link" href="/listings">Explore</a>
-        </div>
-        <div class="navbar-nav ms-auto">
-          <form class="d-flex" role="search">
-            <input class="form-control me-2 search-inp" type="search" placeholder="Search destinations">
-            <button class="btn-search" type="submit"><i class="fa-solid fa-magnifying-glass"></i>Search</button>
-          </form>
-        </div>
-        <div class="navbar-nav ms-auto">
-          <a class="nav-link" href="/listings/new">Add new</a>
-          <% if(!currUser){ %>
-            <a class="nav-link active" href="/Signup"><b>SignUp</b></a>
-            <a class="nav-link" href="/login"><b>Login</b></a>
-          <%}else{%>
-          <a class="nav-link" href="/logout"><b>Logout</b></a>
-          <%}%>
-        </div>
+<nav class="navbar navbar-expand-md border-bottom sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+      <i class="fa-regular fa-compass"></i>
+      <span class="brand-wordmark">tripnest</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <div class="navbar-nav"><a class="nav-link" href="/listings">Explore stays</a></div>
+      <form class="navbar-search" action="/listings" method="get" role="search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" placeholder="Search stays or destinations" aria-label="Search stays or destinations">
+        <button type="submit">Search</button>
+      </form>
+      <div class="navbar-nav ms-auto align-items-md-center navbar-actions">
+        <% if (currUser) { %>
+          <% if (accountType === "guide") { %>
+            <a class="nav-link" href="/guide-experiences/mine">Guide dashboard</a>
+            <a class="nav-link" href="/guide-experiences/new">Offer a local experience</a>
+          <% } else if (accountType === "admin") { %>
+            <a class="nav-link" href="/listings">Manage stays</a>
+            <a class="nav-link" href="/listings/new">Add a stay</a>
+            <a class="nav-link" href="/guide-experiences/admin/dashboard">Admin dashboard</a>
+            <a class="nav-link" href="/guide-experiences/admin/queue">Review guides</a>
+          <% } %>
+          <form action="/logout" method="post"><button class="nav-link btn btn-link p-2 text-decoration-none">Log out</button></form>
+        <% } else { %>
+          <a class="nav-link" href="/signup">Sign up</a>
+          <a class="nav-link nav-login" href="/login">Log in</a>
+        <% } %>
       </div>
     </div>
-  </nav> -->
-
-  <style>
-    .btn-search {
-      background-color: #fe424d;
-      color: white;
-      border: none;
-      border-radius: 1.8rem;
-      padding: 0 1rem 0 1rem;
-    }
-  
-    .btn-search:hover {
-      background-color: #fe424d;
-      color: white;
-    }
-  
-    .btn-search i {
-      display: inline;
-      margin-right: 0.3rem;
-    }
-  
-    .search-inp {
-      border-radius: 1.8rem;
-      padding: 0.5rem 3rem 0.5rem 3rem;
-    }
-  
-    /* Add background color and ensure layering for toggled navbar */
-    .navbar-collapse {
-      background-color: white; /* Background for toggled menu */
-      z-index: 1000; /* Ensure proper layering */
-    }
-  
-    .navbar-toggler {
-      z-index: 1100; /* Keep the toggler button above the navbar */
-    }
-  
-    .navbar-nav a {
-      color: #222222; /* Ensure clear text visibility */
-    }
-  
-    .navbar-nav a:hover {
-      color: #fe424d; /* Highlight on hover */
-    }
-  
-    @media (max-width: 768px) {
-      .navbar-nav {
-        flex-direction: column; /* Stack items vertically on smaller screens */
-      }
-  
-      .navbar-nav a {
-        padding: 0.5rem 1rem; /* Add spacing for better touch targets */
-      }
-    }
-  </style>
-
-  <nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/listings"><i class="fa-regular fa-compass"></i></a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarNavAltMarkup"
-        aria-controls="navbarNavAltMarkup"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <div class="navbar-nav">
-          <a class="nav-link" href="/listings">Explore</a>
-        </div>
-        <div class="navbar-nav ms-auto">
-          <form class="d-flex" role="search">
-            <input
-              class="form-control me-2 search-inp"
-              type="search"
-              placeholder="Search destinations"
-            />
-            <button class="btn-search" type="submit">
-              <i class="fa-solid fa-magnifying-glass"></i>Search
-            </button>
-          </form>
-        </div>
-        <div class="navbar-nav ms-auto">
-          <a class="nav-link" href="/listings/new">Add new</a>
-          <!-- <% if (!currUser) { %>
-          <a class="nav-link active" href="/Signup"><b>SignUp</b></a>
-          <a class="nav-link" href="/login"><b>Login</b></a>
-          <% } else { %>
-          <a class="nav-link" href="/logout"><b>Logout</b></a>
-          <% } %> -->
-          <% if (typeof currUser !== 'undefined' && currUser) { %>
-            <a class="nav-link" href="/logout"><b>Logout</b></a>
-          <% } else { %>
-            <a class="nav-link active" href="/Signup"><b>SignUp</b></a>
-            <a class="nav-link" href="/login"><b>Login</b></a>
-          <%}%>
-        </div>
-      </div>
-    </div>
-  </nav>
-  
+  </div>
+</nav>

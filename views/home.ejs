@@ -1,0 +1,99 @@
+<% layout('layouts/boilerplate') -%>
+
+<main class="home-page">
+  <section class="home-hero">
+    <div class="home-hero-copy">
+      <p class="eyebrow"><i class="fa-solid fa-sparkles"></i> Make room for somewhere new</p>
+      <h1>Stay somewhere<br><span>that feels like you.</span></h1>
+      <p class="home-hero-description">TripNest helps you discover welcoming places to stay, from quiet cabins to city hideaways. Find a place that makes the journey feel like yours.</p>
+      <div class="home-trust-note"><i class="fa-solid fa-shield-heart"></i><span>Discover stays. Plan your next story.</span></div>
+    </div>
+    <div class="home-hero-visual" role="img" aria-label="A peaceful modern holiday home surrounded by greenery">
+      <div class="hero-photo"></div>
+      <div class="hero-note"><span class="hero-note-icon"><i class="fa-solid fa-house"></i></span><span><strong>Your next getaway</strong><small>Starts with the right place</small></span></div>
+      <div class="hero-orbit orbit-one"></div>
+      <div class="hero-orbit orbit-two"></div>
+    </div>
+  </section>
+
+  <section class="home-intro" aria-labelledby="how-heading">
+    <div class="section-kicker">A better way to get away</div>
+    <h2 id="how-heading">Good trips begin with<br>feeling at home.</h2>
+    <p>Whether you’re planning a slow weekend or a big adventure, TripNest brings distinctive places and easy discovery together in one welcoming space.</p>
+  </section>
+
+  <section class="home-benefits" aria-label="Why explore with TripNest">
+    <article class="benefit-card">
+      <span class="benefit-icon"><i class="fa-solid fa-compass"></i></span>
+      <h3>Find your kind of place</h3>
+      <p>Browse stays with personality, from peaceful escapes to places close to the action.</p>
+    </article>
+    <article class="benefit-card">
+      <span class="benefit-icon"><i class="fa-regular fa-heart"></i></span>
+      <h3>Travel that feels personal</h3>
+      <p>Explore welcoming homes and imagine a trip shaped around what you love.</p>
+    </article>
+    <article class="benefit-card">
+      <span class="benefit-icon"><i class="fa-solid fa-house-circle-check"></i></span>
+      <h3>Discover local experiences</h3>
+      <p>Find guide-led activities connected to the places you’re considering.</p>
+    </article>
+  </section>
+
+  <% if (featuredListings && featuredListings.length) { %>
+    <section class="home-featured-stays" aria-labelledby="featured-stays-heading">
+      <div class="home-section-heading">
+        <div>
+          <p class="eyebrow">Places to start with</p>
+          <h2 id="featured-stays-heading">A few stays to spark a trip</h2>
+        </div>
+      </div>
+      <div class="home-marquee" aria-label="Featured stays">
+        <div class="home-marquee-track">
+          <% [false, true].forEach(isDuplicate => { %>
+            <div class="home-stay-grid" <%= isDuplicate ? 'aria-hidden="true"' : '' %>>
+            <% featuredListings.forEach(listing => { %>
+              <a class="home-stay-card" href="/listings/<%= listing._id %>" <%= isDuplicate ? 'tabindex="-1"' : '' %>>
+                <img src="<%= listing.image?.url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=85' %>" alt="<%= listing.title %>" loading="lazy">
+                <div class="home-stay-copy">
+                  <div><h3><%= listing.title %></h3><p><%= [listing.location, listing.country].filter(Boolean).join(", ") %></p></div>
+                  <strong>₹<%= Number(listing.price || 0).toLocaleString("en-IN") %><small> / night</small></strong>
+                </div>
+              </a>
+            <% }) %>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </section>
+  <% } %>
+
+  <section class="home-destinations" aria-labelledby="destinations-heading">
+    <div class="home-section-heading">
+      <div>
+        <p class="eyebrow">A little inspiration</p>
+        <h2 id="destinations-heading">Where could you wake up?</h2>
+      </div>
+    </div>
+    <div class="home-marquee destination-marquee" aria-label="Stay inspiration">
+      <div class="home-marquee-track">
+        <% [false, true].forEach(isDuplicate => { %>
+          <div class="destination-grid" <%= isDuplicate ? 'aria-hidden="true"' : '' %>>
+          <a href="/listings?search=forest" class="destination-card" <%= isDuplicate ? 'tabindex="-1"' : '' %>>
+            <img src="https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=85" alt="Warm cabin tucked into a forest" loading="lazy">
+            <span class="destination-shade"></span><span class="destination-copy"><strong>Slow down in nature</strong><small>Cabins & quiet retreats</small></span>
+          </a>
+          <a href="/listings?search=Bengaluru" class="destination-card" <%= isDuplicate ? 'tabindex="-1"' : '' %>>
+            <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=900&q=85" alt="Architecture and streets in a lively city" loading="lazy">
+            <span class="destination-shade"></span><span class="destination-copy"><strong>Find your city rhythm</strong><small>Lofts & local hideaways</small></span>
+          </a>
+          <a href="/listings?search=beach" class="destination-card" <%= isDuplicate ? 'tabindex="-1"' : '' %>>
+            <img src="https://images.unsplash.com/photo-1499793983690-e29da59ef4b4?auto=format&fit=crop&w=900&q=85" alt="Bright seaside home overlooking the water" loading="lazy">
+            <span class="destination-shade"></span><span class="destination-copy"><strong>Follow the coastline</strong><small>Beach homes & fresh air</small></span>
+          </a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+</main>

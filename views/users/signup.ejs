@@ -23,8 +23,9 @@
 
 <% layout('layouts/boilerplate') -%>
 <div class="row mt-3 mb-3">
-  <h1 class="col-6 offset-3 text-center">Sign Up for WanderLust</h1>
-  <div class="col-6 offset-3">
+  <div class="col-12 form-container">
+    <h1>Join TripNest</h1>
+    <p class="form-intro">Create an account and start finding your kind of stay.</p>
     <form method="post" action="/signup" novalidate class="needs-validation">
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
@@ -38,11 +39,37 @@
         <div class="invalid-feedback">Please enter a valid email address</div>
       </div>
       <div class="mb-3">
+        <label for="accountType" class="form-label">Create account as</label>
+        <select id="accountType" name="accountType" class="form-select" required>
+          <option value="traveler" selected>Traveler</option>
+          <option value="guide">Local guide</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      <div class="mb-3" id="admin-invite-field" hidden>
+        <label for="adminInviteCode" class="form-label">Administrator invite code</label>
+        <input type="password" id="adminInviteCode" name="adminInviteCode" class="form-control" autocomplete="off">
+        <div class="form-text">Admin accounts require an invite code configured by the site owner.</div>
+      </div>
+      <div class="mb-3">
         <label for="password" class="form-label">Password</label>
         <input type="password" name="password" id="password" class="form-control" placeholder="Enter your password" required>
         <div class="invalid-feedback">Please enter your password</div>
       </div>
-      <button class="btn btn-success w-100">Sign Up</button>
+      <button class="btn btn-primary-action w-100">Create account</button>
     </form>
+    <p class="auth-switch">Already have an account? <a href="/login">Log in</a></p>
   </div>
 </div>
+<script>
+  const accountTypeSelect = document.getElementById("accountType");
+  const adminInviteField = document.getElementById("admin-invite-field");
+  const adminInviteInput = document.getElementById("adminInviteCode");
+  const updateAdminInviteField = () => {
+    const isAdmin = accountTypeSelect.value === "admin";
+    adminInviteField.hidden = !isAdmin;
+    adminInviteInput.required = isAdmin;
+  };
+  accountTypeSelect.addEventListener("change", updateAdminInviteField);
+  updateAdminInviteField();
+</script>
