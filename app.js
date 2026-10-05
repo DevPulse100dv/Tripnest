@@ -4,6 +4,11 @@ if(process.env.NODE_ENV != "production"){
 
 const express = require("express");
 const app = express();
+// Render terminates HTTPS at its proxy; trust it so express-session can set
+// secure cookies when the forwarded protocol is HTTPS.
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 const path = require("path");
 const methodOverride = require('method-override');
 const ejsMate = require("ejs-mate");
@@ -70,7 +75,6 @@ const port = process.env.PORT || 8081;
 async function startServer() {
   try {
     await connectDatabase(dbUrl);
-    console.log(dbUrl)
     console.log("connected to database");
     app.listen(port, () => {
       console.log("server is listening", `http://localhost:${port}`);
