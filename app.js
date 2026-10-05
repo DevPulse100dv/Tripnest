@@ -66,10 +66,11 @@ app.use((err,req,res,next)=>{
 });
 
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8081;
 async function startServer() {
   try {
     await connectDatabase(dbUrl);
+    console.log(dbUrl)
     console.log("connected to database");
     app.listen(port, () => {
       console.log("server is listening", `http://localhost:${port}`);
